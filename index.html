@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資金流量預測 | Cash Flow Forecast</title>
+<script src="https://yj-chen0830.github.io/jrh-core/jrh-core.js?v=3" defer></script>
+<style>
+  :root{--navy:#0b1f3a;--navy2:#16335b;--gold:#caa44b;--gold2:#ead28e;--bg:#f5f3ee;--ink:#1b2532;--line:#d8d1c0;--green:#1f7a45;--red:#bf3d2e;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Noto Sans TC","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#f5f3ee;padding:28px 32px;}
+  header h1{margin:0;font-size:24px;letter-spacing:.02em;}
+  header span{display:block;margin-top:6px;font-size:13px;color:var(--gold2);}
+  main{max-width:1200px;margin:0 auto;padding:28px 20px 60px;}
+  .proj-section{background:#fff;border:1px solid var(--gold);border-radius:10px;padding:18px 22px;margin-bottom:20px;}
+  .proj-section h3{margin:0 0 12px;color:var(--navy);font-size:14px;font-weight:700;}
+  .proj-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid{display:grid;grid-template-columns:340px 1fr;gap:24px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px 24px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+  .card h2{font-size:15px;margin:0 0 18px;color:var(--navy);font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--gold);padding-bottom:10px;}
+  label{display:block;font-size:12px;color:#666;margin:10px 0 4px;font-weight:500;}
+  input{width:100%;padding:8px 11px;border:1.5px solid var(--line);border-radius:7px;font-size:13.5px;background:#fafaf8;}
+  input:focus{outline:none;border-color:var(--gold);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .sec{font-size:12px;font-weight:700;color:var(--navy);margin:16px 0 6px;border-left:4px solid var(--gold);padding-left:9px;letter-spacing:.04em;text-transform:uppercase;}
+  .note{font-size:11.5px;color:#777;margin-top:12px;line-height:1.75;background:#f9f7f2;border-radius:6px;padding:10px 12px;}
+  .hero-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+  .metric{border:1px solid var(--line);border-radius:10px;padding:14px 14px 12px;background:linear-gradient(180deg,#fff,#faf8f2);}
+  .metric b{display:block;font-size:12px;color:#6a6a6a;margin-bottom:8px;}
+  .metric strong{font-size:20px;color:var(--navy);line-height:1.2;}
+  .metric small{display:block;margin-top:6px;font-size:11px;color:#777;}
+  .status-ok{color:var(--green);font-weight:700;}
+  .status-ng{color:var(--red);font-weight:700;}
+  button.calc-btn{margin-top:16px;width:100%;padding:12px;border:none;border-radius:8px;background:var(--navy);color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;}
+  button.calc-btn:hover{background:var(--navy2);}
+  button.pro-btn{margin-top:12px;width:100%;padding:12px;border:none;border-radius:8px;background:var(--gold);color:var(--navy);font-size:14.5px;font-weight:700;cursor:pointer;}
+  button.pro-btn:hover{filter:brightness(1.06);}
+  table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  th{background:var(--navy);color:#f5f3ee;font-weight:600;font-size:12px;padding:9px 10px;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  td{padding:8px 10px;font-size:12.5px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:#f9f7f3;}
+  .table-wrap{overflow:auto;border-radius:8px;}
+  .summary-table{margin-bottom:14px;}
+  details.proc{margin-top:16px;border:1px solid var(--line);border-radius:8px;background:#fafaf8;overflow:hidden;}
+  details.proc summary{cursor:pointer;padding:10px 14px;font-weight:700;font-size:13px;color:var(--navy);user-select:none;list-style:none;display:flex;align-items:center;gap:6px;}
+  details.proc summary::before{content:"▶";font-size:10px;transition:transform .2s;}
+  details[open].proc summary::before{transform:rotate(90deg);}
+  details.proc pre{margin:0;padding:12px 16px 16px;font-family:"Courier New",monospace;font-size:11.5px;line-height:1.9;white-space:pre-wrap;color:#2c3e50;border-top:1px solid var(--line);}
+  .mob-tabs{display:none;}
+  .subtle{font-size:12px;color:#777;margin:-8px 0 14px;}
+  @media(max-width:980px){
+    .grid{grid-template-columns:1fr;}
+    .hero-metrics{grid-template-columns:repeat(2,1fr);}
+  }
+  @media(max-width:767px){
+    main{padding:20px 14px 48px;}
+    .proj-grid,.row2,.hero-metrics{grid-template-columns:1fr;}
+    .mob-tabs{display:flex;background:var(--bg);border-bottom:2px solid var(--line);margin:0 -14px 0;padding:0 14px;}
+    .mob-tab{flex:1;padding:11px 4px;text-align:center;font-size:13.5px;font-weight:700;color:#888;cursor:pointer;background:transparent;border:none;border-bottom:3px solid transparent;}
+    .mob-tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+    .grid{display:block;}
+    .grid>.card{display:none;}
+    .grid>.card.mob-active{display:block;}
+  }
+  @media print{
+    header,.no-print{display:none!important;}
+    body{background:#fff;margin:0;font-size:9pt;line-height:1.5;color:#111;}
+    main{padding:0;max-width:100%!important;}
+    .grid{grid-template-columns:1fr!important;gap:10pt!important;}
+    .card{box-shadow:none!important;border:1px solid #ccc!important;border-radius:4pt!important;padding:10pt 12pt!important;break-inside:avoid;}
+    .card h2{font-size:10.5pt!important;padding-bottom:6pt!important;margin-bottom:9pt!important;}
+    label{font-size:8pt!important;margin:6pt 0 2pt!important;}
+    .sec{font-size:8pt!important;margin:10pt 0 4pt!important;}
+    .note,.subtle{font-size:7.5pt!important;padding:6pt 9pt!important;}
+    .hero-metrics{grid-template-columns:repeat(4,1fr)!important;gap:6pt!important;margin-bottom:8pt!important;}
+    .metric{padding:8pt!important;border-radius:4pt!important;break-inside:avoid;}
+    .metric strong{font-size:11pt!important;}
+    table{border:1px solid #bbb!important;border-radius:0!important;}
+    th{font-size:8pt!important;padding:5pt 7pt!important;background:#0b1f3a!important;color:#fff!important;}
+    td{font-size:7.7pt!important;padding:4pt 6pt!important;}
+    details.proc{display:block!important;margin-top:10pt!important;border:1pt solid #0b1f3a!important;border-radius:4pt!important;break-inside:avoid;background:#f9f9f6!important;}
+    details.proc>summary{display:none!important;}
+    details.proc::before{content:"📋  計算過程（供第三方檢核）";display:block;font-weight:700;font-size:8pt;color:#0b1f3a;padding:6pt 10pt 4pt;border-bottom:1px solid #ccc;letter-spacing:.04em;}
+    details.proc>pre{font-size:7pt!important;line-height:1.65!important;white-space:pre-wrap!important;padding:6pt 10pt 10pt!important;color:#1a1a1a!important;font-family:"Courier New",monospace!important;}
+    .proj-section{border:1.5pt solid #0b1f3a!important;border-radius:4pt!important;}
+    button.pro-btn,button.calc-btn{display:none!important;}
+    @page{margin:15mm 12mm;size:A4;}
+  }
+</style>
+</head>
+<body data-tool="cfs">
+<header>
+  <a href="https://yj-chen0830.github.io/engineering-hub/" style="color:var(--gold2);font-size:12.5px;text-decoration:none;display:inline-block;margin-bottom:8px;">← 返回工程計算中心</a>
+  <h1>💰 資金流量預測（S曲線現金流量分析）</h1>
+  <span>DHSS / Bromilow 對稱 S 曲線法 · 估驗計價延遲入帳 · 保留款與墊款峰值分析</span>
+</header>
+<main>
+
+<div class="proj-section no-print" id="projSection">
+  <h3>📁 專案資訊（列印時帶入計算書封面）</h3>
+  <div class="proj-grid">
+    <div><label>工程名稱</label><input id="pj-name" placeholder="○○新建工程"></div>
+    <div><label>工程地點</label><input id="pj-loc" placeholder="○○市○○區"></div>
+    <div><label>承造廠商</label><input id="pj-contractor" placeholder="○○營造股份有限公司"></div>
+    <div><label>文件編號</label><input id="pj-docno" placeholder="CFS-CAL-001"></div>
+    <div><label>計算者</label><input id="pj-calc" placeholder="姓名"></div>
+    <div><label>審核者</label><input id="pj-review" placeholder="姓名"></div>
+    <div><label>計算日期</label><input id="pj-date" type="date"></div>
+  </div>
+</div>
+
+<div class="mob-tabs">
+  <button class="mob-tab active" onclick="switchMobTab('cfs-in',this)">📋 輸入參數</button>
+  <button class="mob-tab" id="mobTab-cfs-r" onclick="switchMobTab('cfs-r',this)">📊 計算結果</button>
+</div>
+
+<div class="grid">
+  <div class="card mob-active" data-tab="cfs-in">
+    <h2>財務規劃輸入條件</h2>
+    <div class="row2">
+      <div><label>合約總價 TCV (萬元)</label><input id="cfs-tcv" type="number" value="12000" step="100" min="1"></div>
+      <div><label>施工總工期 T (月)</label><input id="cfs-t" type="number" value="12" step="1" min="1"></div>
+    </div>
+    <div class="row2">
+      <div><label>保留款比例 retention (%)</label><input id="cfs-retention" type="number" value="10" step="0.5" min="0" max="100"></div>
+      <div><label>估驗後付款延遲 lag (月)</label><input id="cfs-lag" type="number" value="1" step="1" min="0"></div>
+    </div>
+    <label>毛利率 margin (%)</label>
+    <input id="cfs-margin" type="number" value="10" step="0.5" min="0" max="100">
+
+    <div class="sec">預設情境</div>
+    <div class="note">本工具預設採：`TCV=12,000 萬元`、`T=12 月`、`Retention=10%`、`Lag=1 月`、`Margin=10%`。成本假設與施工產值同月發生，適用營造廠財務規劃、顧問公司估驗計價審查與融資需求初估。</div>
+
+    <button class="calc-btn" onclick="calcCFS()">計算 S 曲線現金流</button>
+    <div class="note">計算基礎：累積進度採 `Cum%(t)=3(t/T)^2-2(t/T)^3`。每月產值依前後月累積進度差額換算；請款金額扣除保留款；現金流入依 `lag` 月延後入帳；保留款統一於完工後第 `T+1` 月發還。</div>
+  </div>
+
+  <div class="card" data-tab="cfs-r">
+    <h2>資金流量分析結果</h2>
+    <p class="subtle">輸出單位皆為「萬元」。`Gap>0` 表示累積成本大於累積收款，代表承商需自備或融資墊付資金。</p>
+    <div id="cfs-result">
+      <p style="color:#888">尚未計算</p>
+    </div>
+    <details class="proc" id="cfs-proc" style="display:none">
+      <summary>📋 計算過程（供第三方檢核）</summary>
+      <pre id="cfs-proc-text"></pre>
+    </details>
+    <button class="pro-btn no-print" onclick="openPro()">📄 產出計算書 PDF</button>
+  </div>
+</div>
+
+</main>
+<script>
+function switchMobTab(name,btn){
+  btn.parentElement.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  btn.parentElement.nextElementSibling.querySelectorAll('.card').forEach(function(c){
+    c.classList.toggle('mob-active',c.dataset.tab===name);
+  });
+}
+function openPro(){ JRH.checkEmail(function(){ jrhPrint('資金流量預測計算書'); }); }
+function v(id){ return parseFloat(document.getElementById(id).value) || 0; }
+function f2(x){ return Number(x).toFixed(2); }
+function f3(x){ return Number(x).toFixed(3); }
+function pct3(x){ return (x*100).toFixed(3) + '%'; }
+
+function calcCFS(){
+  var TCV=v('cfs-tcv');
+  var T=Math.max(1,Math.round(v('cfs-t')));
+  var retention=v('cfs-retention');
+  var lag=Math.max(0,Math.round(v('cfs-lag')));
+  var margin=v('cfs-margin');
+  var retainRate=retention/100;
+  var costRate=1-margin/100;
+
+  document.getElementById('cfs-t').value=T;
+  document.getElementById('cfs-lag').value=lag;
+
+  var rows=[];
+  var cumCashIn=0, cumCost=0, retentionTotal=0, maxGap=-Infinity, maxGapMonth=1;
+
+  function cumPct(t){
+    var x=t/T;
+    return 3*x*x - 2*x*x*x;
+  }
+
+  for(var t=1;t<=T;t++){
+    var cumNow=cumPct(t);
+    var cumPrev=cumPct(t-1);
+    var value=TCV*(cumNow-cumPrev);
+    var billing=value*(1-retainRate);
+    var cashIn=(t-lag>=1)?rows[t-lag-1].billing:0;
+    var cost=value*costRate;
+    cumCashIn+=cashIn;
+    cumCost+=cost;
+    var gap=cumCost-cumCashIn;
+    retentionTotal+=value*retainRate;
+    if(gap>maxGap){
+      maxGap=gap;
+      maxGapMonth=t;
+    }
+    rows.push({
+      month:t,
+      cumPct:cumNow,
+      value:value,
+      billing:billing,
+      cashIn:cashIn,
+      cost:cost,
+      cumCashIn:cumCashIn,
+      cumCost:cumCost,
+      gap:gap
+    });
+  }
+
+  var finalGapBeforeRetention=rows[rows.length-1].gap;
+  var postRetentionCashIn=retentionTotal;
+  var finalCumCashIn=cumCashIn+postRetentionCashIn;
+  var finalBalanceAfterRetention=finalCumCashIn-cumCost;
+  var gapAfterRetention=cumCost-finalCumCashIn;
+  var postRetentionPositive=finalBalanceAfterRetention>=0;
+
+  var summaryHtml='';
+  summaryHtml+='<div class="hero-metrics">';
+  summaryHtml+='<div class="metric"><b>最大現金缺口</b><strong>'+f2(maxGap)+'</strong><small>發生於第 '+maxGapMonth+' 月</small></div>';
+  summaryHtml+='<div class="metric"><b>完工時未回收缺口</b><strong>'+f2(finalGapBeforeRetention)+'</strong><small>第 '+T+' 月累積 Gap</small></div>';
+  summaryHtml+='<div class="metric"><b>保留款總額</b><strong>'+f2(retentionTotal)+'</strong><small>第 '+(T+1)+' 月統一發還</small></div>';
+  summaryHtml+='<div class="metric"><b>保留款發還後結餘</b><strong class="'+(postRetentionPositive?'status-ok':'status-ng')+'">'+f2(finalBalanceAfterRetention)+'</strong><small>'+(postRetentionPositive?'資金轉正，可回收墊款':'資金仍為負值，需另檢討')+'</small></div>';
+  summaryHtml+='</div>';
+
+  summaryHtml+='<table class="summary-table">';
+  summaryHtml+='<tr><th>項目</th><th>數值</th></tr>';
+  summaryHtml+='<tr><td>DHSS/Bromilow 累積進度公式</td><td>Cum%(t) = 3×(t/T)^2 - 2×(t/T)^3</td></tr>';
+  summaryHtml+='<tr><td>總工期 / 延遲收款</td><td>'+T+' 月 / '+lag+' 月</td></tr>';
+  summaryHtml+='<tr><td>請款折減後比率</td><td>'+(100-retention).toFixed(2)+'%</td></tr>';
+  summaryHtml+='<tr><td>成本率</td><td>'+(costRate*100).toFixed(2)+'%</td></tr>';
+  summaryHtml+='<tr><td>最大融資需求峰值 MaxGap</td><td>'+f2(maxGap)+' 萬元（第 '+maxGapMonth+' 月）</td></tr>';
+  summaryHtml+='<tr><td>保留款發還後最終現金結餘</td><td><span class="'+(postRetentionPositive?'status-ok':'status-ng')+'">'+f2(finalBalanceAfterRetention)+' 萬元</span></td></tr>';
+  summaryHtml+='</table>';
+
+  var tableHtml='<div class="table-wrap"><table><tr><th>月份</th><th>Cum%</th><th>Value</th><th>Billing</th><th>CashIn</th><th>Cost</th><th>CumCashIn</th><th>CumCost</th><th>Gap</th></tr>';
+  rows.forEach(function(r){
+    tableHtml+='<tr>'+
+      '<td>第 '+r.month+' 月</td>'+
+      '<td>'+pct3(r.cumPct)+'</td>'+
+      '<td>'+f2(r.value)+'</td>'+
+      '<td>'+f2(r.billing)+'</td>'+
+      '<td>'+f2(r.cashIn)+'</td>'+
+      '<td>'+f2(r.cost)+'</td>'+
+      '<td>'+f2(r.cumCashIn)+'</td>'+
+      '<td>'+f2(r.cumCost)+'</td>'+
+      '<td>'+(r.gap>=0?'<span class="status-ng">':'<span class="status-ok">')+f2(r.gap)+'</span></td>'+
+    '</tr>';
+  });
+  tableHtml+='<tr>'+
+    '<td>第 '+(T+1)+' 月<br>保留款發還</td>'+
+    '<td>100.000%</td>'+
+    '<td>0.00</td>'+
+    '<td>0.00</td>'+
+    '<td>'+f2(postRetentionCashIn)+'</td>'+
+    '<td>0.00</td>'+
+    '<td>'+f2(finalCumCashIn)+'</td>'+
+    '<td>'+f2(cumCost)+'</td>'+
+    '<td>'+(gapAfterRetention>=0?'<span class="status-ng">':'<span class="status-ok">')+f2(gapAfterRetention)+'</span></td>'+
+  '</tr>';
+  tableHtml+='</table></div>';
+
+  document.getElementById('cfs-result').innerHTML=summaryHtml+tableHtml;
+
+  var pickedMonths=[1,2,3,maxGapMonth,T];
+  var seen={};
+  var proc='';
+  proc+='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+  proc+='  資金流量預測（DHSS / Bromilow S曲線法）計算過程\n';
+  proc+='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+  proc+='【輸入條件】\n';
+  proc+='  TCV = '+f2(TCV)+' 萬元\n';
+  proc+='  T = '+T+' 月\n';
+  proc+='  retention = '+f2(retention)+'% → 保留款率 = '+f3(retainRate)+'\n';
+  proc+='  lag = '+lag+' 月\n';
+  proc+='  margin = '+f2(margin)+'% → 成本率 = 1 - '+f3(margin/100)+' = '+f3(costRate)+'\n\n';
+  proc+='【基本公式】\n';
+  proc+='  1. Cum%(t) = 3×(t/T)^2 - 2×(t/T)^3\n';
+  proc+='  2. Value(t) = TCV × [Cum%(t) - Cum%(t-1)]\n';
+  proc+='  3. Billing(t) = Value(t) × (1 - retention)\n';
+  proc+='  4. CashIn(t) = Billing(t-lag)\n';
+  proc+='  5. Cost(t) = Value(t) × (1 - margin)\n';
+  proc+='  6. Gap(t) = CumCost(t) - CumCashIn(t)\n\n';
+  pickedMonths.forEach(function(m){
+    if(seen[m]) return;
+    seen[m]=true;
+    var r=rows[m-1];
+    var x=m/T, xPrev=(m-1)/T;
+    var fromBill=(m-lag>=1)?('Billing('+(m-lag)+') = '+f2(rows[m-lag-1].billing)):'0.00（因 t-lag < 1）';
+    proc+='【第 '+m+' 月詳細代入】\n';
+    proc+='  Cum%('+m+') = 3×('+m+'/'+T+')^2 - 2×('+m+'/'+T+')^3\n';
+    proc+='           = 3×'+f6(x*x)+' - 2×'+f6(x*x*x)+' = '+f6(r.cumPct)+' = '+pct3(r.cumPct)+'\n';
+    proc+='  Cum%('+(m-1)+') = 3×('+(m-1)+'/'+T+')^2 - 2×('+(m-1)+'/'+T+')^3 = '+f6(3*xPrev*xPrev-2*xPrev*xPrev*xPrev)+'\n';
+    proc+='  Value('+m+') = '+f2(TCV)+' × ('+f6(r.cumPct)+' - '+f6(3*xPrev*xPrev-2*xPrev*xPrev*xPrev)+') = '+f2(r.value)+'\n';
+    proc+='  Billing('+m+') = '+f2(r.value)+' × (1 - '+f3(retainRate)+') = '+f2(r.billing)+'\n';
+    proc+='  CashIn('+m+') = '+fromBill+' = '+f2(r.cashIn)+'\n';
+    proc+='  Cost('+m+') = '+f2(r.value)+' × '+f3(costRate)+' = '+f2(r.cost)+'\n';
+    proc+='  CumCashIn('+m+') = '+f2(r.cumCashIn)+'\n';
+    proc+='  CumCost('+m+') = '+f2(r.cumCost)+'\n';
+    proc+='  Gap('+m+') = '+f2(r.cumCost)+' - '+f2(r.cumCashIn)+' = '+f2(r.gap)+'\n\n';
+  });
+  proc+='【最大現金缺口】\n';
+  proc+='  MaxGap = max(Gap(t)) = '+f2(maxGap)+' 萬元，發生於第 '+maxGapMonth+' 月\n\n';
+  proc+='【完工後保留款統一發還】\n';
+  proc+='  Retention Return(T+1) = Σ[Value(t)×'+f3(retainRate)+'] = '+f2(retentionTotal)+'\n';
+  proc+='  CumCashIn(T+1) = '+f2(cumCashIn)+' + '+f2(retentionTotal)+' = '+f2(finalCumCashIn)+'\n';
+  proc+='  最終現金結餘 = CumCashIn(T+1) - CumCost(T) = '+f2(finalCumCashIn)+' - '+f2(cumCost)+' = '+f2(finalBalanceAfterRetention)+'\n';
+  proc+='  判定：'+(postRetentionPositive?'保留款發還後現金轉正。':'保留款發還後現金仍未轉正，需另行檢討周轉資金。')+'\n\n';
+  proc+='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+  proc+='  用途：營造廠周轉金規劃、金融融資需求峰值試算、顧問公司估驗計價合理性檢視\n';
+  proc+='  限制：本工具為財務規劃模型，未納入稅金、預付款、物價調整、分包付款條件與實際付款折讓差異\n';
+  proc+='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+
+  document.getElementById('cfs-proc-text').textContent=proc;
+  document.getElementById('cfs-proc').style.display='';
+
+  if(window.innerWidth<768){
+    var b=document.getElementById('mobTab-cfs-r');
+    if(b) switchMobTab('cfs-r',b);
+  }
+}
+
+function f6(x){ return Number(x).toFixed(6); }
+
+calcCFS();
+</script>
+<script>
+window.jrhDocMeta={
+  "doc":"資金流量預測計算書",
+  "codes":[
+    "DHSS / Bromilow 對稱 S 曲線法（營建工程累積進度估算）",
+    "工程估驗計價與保留款慣例之現金流分析模型"
+  ],
+  "notes":[
+    "本工具採對稱 S 曲線估算月別完成產值，適用於初步資金規劃與估驗計價節奏研判，非實際施工排程替代品。",
+    "CashIn 依使用者設定之 lag 月數整體平移，未細分送審、核撥、票期與分期撥付差異。",
+    "成本率係以毛利率反推成本支出，假設成本與當月完成產值同步發生；若專案有大額材料預付款或設備採購，應另行調整。",
+    "保留款假設於完工後第 T+1 月一次返還，未納入缺失改善保留、保固保留或分段解保情境。",
+    "本計算結果僅供營造廠財務規劃、融資試算與顧問審查參考，正式資金調度仍應配合合約條款、實際排程與會計政策複核。"
+  ]
+};
+</script>
+</body>
+</html>
